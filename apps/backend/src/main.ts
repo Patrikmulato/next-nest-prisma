@@ -1,12 +1,20 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { TrpcRouter } from '@backend/trpc/trcp.router';
+import { allowedOrigins } from './config/corsOptions';
+import { AllExceptionsFilter } from './all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
-  const trpc = app.get(TrpcRouter);
-  trpc.applyMiddleware(app);
+
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
+
+  app.setGlobalPrefix('api');
+
+  app.enableCors({
+    origin: allowedOrigins,
+  });
+
   await app.listen(process.env.PORT || 3002);
 }
 bootstrap();
