@@ -2,17 +2,24 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import { DatabaseModule } from './database/database.module';
-import { EmployeesModule } from './employees/employees.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, HttpAdapterHost } from '@nestjs/core';
 import { MyLoggerModule } from './my-logger/my-logger.module';
+import { UsersModule } from './users/users.module';
+import {
+  PrismaClientExceptionFilter,
+  PrismaModule,
+  loggingMiddleware,
+} from 'nestjs-prisma';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    DatabaseModule,
-    EmployeesModule,
+    PrismaModule.forRoot({
+      prismaServiceOptions: {
+        middlewares: [loggingMiddleware()],
+      },
+    }),
     ThrottlerModule.forRoot([
       {
         name: 'long',
@@ -21,6 +28,7 @@ import { MyLoggerModule } from './my-logger/my-logger.module';
       },
     ]),
     MyLoggerModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [
@@ -28,6 +36,13 @@ import { MyLoggerModule } from './my-logger/my-logger.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useFactory: ({ httpAdapter }: HttpAdapterHost) => {
+        return new PrismaClientExceptionFilter(httpAdapter);
+      },
+      inject: [HttpAdapterHost],
     },
   ],
 })
