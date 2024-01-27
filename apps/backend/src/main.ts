@@ -7,6 +7,8 @@ import {
 } from '@nestjs/platform-fastify';
 import { join } from 'path';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
+import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -28,6 +30,8 @@ async function bootstrap() {
 
   const { httpAdapter } = app.get(HttpAdapterHost);
 
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
   app.setGlobalPrefix('api');
@@ -35,6 +39,15 @@ async function bootstrap() {
   app.enableCors({
     origin: allowedOrigins,
   });
+
+  const config = new DocumentBuilder()
+    .setTitle('NextNest')
+    .setDescription('The NextNest API description')
+    .setVersion('0.1')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('swagger', app, document);
 
   await app.listen(process.env.PORT || 3002);
 }

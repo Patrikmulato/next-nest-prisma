@@ -11,6 +11,7 @@ import {
   PrismaModule,
   loggingMiddleware,
 } from 'nestjs-prisma';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import {
     ]),
     MyLoggerModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
