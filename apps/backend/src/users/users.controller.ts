@@ -6,14 +6,12 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { Prisma, UserRole } from '@prisma/client';
 import { MyLoggerService } from '@backend/my-logger/my-logger.service';
-import { JwtAuthGuard } from '@backend/auth/jwt-auth.guard';
+import { AccessTokenGuard } from '@backend/auth/guards/accessToken.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -30,25 +28,27 @@ export class UsersController {
 
   @Post()
   @ApiCreatedResponse({ type: UserEntity })
-  async create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
     return new UserEntity(await this.usersService.create(createUserDto));
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity, isArray: true })
-  async findAll() {
+  async findAll(): Promise<UserEntity[]> {
     const users = await this.usersService.findAll();
     return users.map((user) => new UserEntity(user));
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    const user = await this.usersService.findOne(id);
+  async findById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UserEntity | null> {
+    const user = await this.usersService.findById(id);
 
     if (!user) {
       return null;
@@ -58,21 +58,21 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
-  ) {
+  ): Promise<UserEntity> {
     return new UserEntity(await this.usersService.update(id, updateUserDto));
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<UserEntity> {
     return new UserEntity(await this.usersService.remove(id));
   }
 }

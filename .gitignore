@@ -6,3 +6,4 @@ node_modules
 apps/backend/logs
 migration.sql
 migration_lock.toml
+apps/shared/prisma

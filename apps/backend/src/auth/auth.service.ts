@@ -1,36 +1,97 @@
 //src/auth/auth.service.ts
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { compare } from 'bcrypt';
+import { UsersService } from '@backend/users/users.service';
+import { LoginDto } from './dto/login.dto';
+import { CreateUserDto } from '@backend/users/dto/create-user.dto';
 import { AuthEntity } from './entity/auth.entity';
-import { PrismaService } from 'nestjs-prisma';
-import * as bcrypt from 'bcrypt';
+import validateUser from './utils/validate-user';
+import getTokens from './utils/get-tokens';
+import updateRefreshToken from './utils/update-refresh-token';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
+    private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string): Promise<AuthEntity> {
-    const user = await this.prisma.user.findUnique({ where: { email: email } });
+  // REGISTER
+  async register(createUserDto: CreateUserDto): Promise<AuthEntity> {
+    const newUser = await this.usersService.create(createUserDto);
 
-    if (!user) {
-      throw new NotFoundException(`No user found for email: ${email}`);
-    }
+    const tokens = await getTokens(newUser.id, newUser.email, this.jwtService);
+    await updateRefreshToken(
+      newUser.id,
+      tokens.refreshToken,
+      this.usersService,
+    );
+    return {
+      ...tokens,
+      id: newUser.id,
+      email: newUser.email,
+    };
+  }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+  // LOGIN
+  async login(loginDto: LoginDto): Promise<AuthEntity> {
+    const user = await validateUser(loginDto, this.usersService);
 
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid password');
-    }
+    const tokens = await getTokens(user.id, user.email, this.jwtService);
+    await updateRefreshToken(user.id, tokens.refreshToken, this.usersService);
 
     return {
-      accessToken: this.jwtService.sign({ userId: user.id }),
+      ...user,
+      ...tokens,
+    };
+  }
+
+  async logout(userId?: string): Promise<string> {
+    if (!userId) {
+      throw new NotFoundException(`No user id found: ${userId}`);
+    }
+    const res = await this.usersService.update(userId, {
+      refreshToken: undefined,
+    });
+    if (res) {
+      return 'success';
+    }
+    return 'failed';
+  }
+
+  async refreshToken(
+    userId?: string,
+    refreshToken?: string,
+  ): Promise<AuthEntity> {
+    if (!userId || !refreshToken) {
+      throw new NotFoundException(
+        `No user id or refresh token found: id: ${userId} token: ${refreshToken}`,
+      );
+    }
+
+    const user = await this.usersService.findById(userId);
+
+    if (!user)
+      throw new NotFoundException(`No user found with this id: ${userId}`);
+
+    if (!user.refreshToken)
+      throw new NotFoundException(`User has no refresh Token`);
+
+    const isRefreshTokenValid = compare(user.refreshToken, refreshToken);
+    if (!isRefreshTokenValid) throw new ForbiddenException('Access Denied');
+
+    const tokens = await getTokens(user.id, user.email, this.jwtService);
+    await updateRefreshToken(user.id, tokens.refreshToken, this.usersService);
+
+    return {
+      ...tokens,
+      id: user.id,
+      email: user.email,
     };
   }
 }
