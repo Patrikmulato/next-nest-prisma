@@ -1,7 +1,7 @@
 import { User } from '@prisma/client';
 
 export const getAllUsers = async (): Promise<User[]> => {
-  const res = await fetch('http://localhost:3002/api/users', {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users`, {
     next: { revalidate: 60 },
   });
 

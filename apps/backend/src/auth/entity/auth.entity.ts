@@ -1,10 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 type Auth = {
-  id: string;
-  email: string;
-  accessToken: string;
-  refreshToken: string;
+  userData: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
 };
 
 export class AuthEntity implements Auth {
@@ -13,14 +18,15 @@ export class AuthEntity implements Auth {
   }
 
   @ApiProperty()
-  id: string;
+  userData: {
+    id: string;
+    email: string;
+    name: string;
+  };
 
   @ApiProperty()
-  email: string;
-
-  @ApiProperty()
-  accessToken: string;
-
-  @ApiProperty()
-  refreshToken: string;
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
 }

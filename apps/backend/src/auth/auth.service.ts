@@ -31,10 +31,14 @@ export class AuthService {
       tokens.refreshToken,
       this.usersService,
     );
+
     return {
-      ...tokens,
-      id: newUser.id,
-      email: newUser.email,
+      userData: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+      },
+      tokens: { ...tokens },
     };
   }
 
@@ -46,8 +50,8 @@ export class AuthService {
     await updateRefreshToken(user.id, tokens.refreshToken, this.usersService);
 
     return {
-      ...user,
-      ...tokens,
+      userData: { ...user },
+      tokens: { ...tokens },
     };
   }
 
@@ -89,9 +93,12 @@ export class AuthService {
     await updateRefreshToken(user.id, tokens.refreshToken, this.usersService);
 
     return {
-      ...tokens,
-      id: user.id,
-      email: user.email,
+      userData: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      tokens: { ...tokens },
     };
   }
 }

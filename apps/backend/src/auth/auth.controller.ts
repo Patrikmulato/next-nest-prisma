@@ -25,7 +25,7 @@ interface CustomRequest extends Request {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('signup')
+  @Post('register')
   @ApiCreatedResponse({ type: AuthEntity })
   async register(@Body() createUserDto: CreateUserDto): Promise<AuthEntity> {
     return new AuthEntity(await this.authService.register(createUserDto));

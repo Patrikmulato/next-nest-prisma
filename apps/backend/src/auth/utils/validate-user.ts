@@ -23,5 +23,6 @@ export default async function validateUser(
   return {
     id: user.id,
     email: user.email,
+    name: user.name,
   };
 }

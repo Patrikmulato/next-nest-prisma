@@ -36,9 +36,9 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  app.enableCors({
-    origin: allowedOrigins,
-  });
+  // app.enableCors({
+  //   origin: allowedOrigins,
+  // });
 
   const config = new DocumentBuilder()
     .setTitle('NextNest')

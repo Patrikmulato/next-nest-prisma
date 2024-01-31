@@ -1,7 +1,13 @@
+'use client';
 import React from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 const Navbar = ({ toggle }: { toggle: () => void }) => {
+  const { data: session } = useSession();
+
+  console.log({ session });
+
   return (
     <>
       <div className='w-full h-20 bg-slate-900 sticky top-0'>
@@ -36,11 +42,29 @@ const Navbar = ({ toggle }: { toggle: () => void }) => {
                 </Link>
               </li>
             </ul>
-            <div className='hidden md:block'>
-              <button className='h-12 rounded-lg bg-sky-900 font-bold px-5'>
-                Sign In
-              </button>
-            </div>
+            {session && session.user ? (
+              <div className='hidden md:block'>
+                <h3>{session.user.name}</h3>
+                <Link href='/api/auth/signout'>
+                  <button className='h-12 rounded-lg bg-sky-900 font-bold px-5'>
+                    Sign Out
+                  </button>
+                </Link>
+              </div>
+            ) : (
+              <div className='hidden md:block'>
+                <Link href='/api/auth/signin'>
+                  <button className='h-12 rounded-lg bg-sky-900 font-bold px-5'>
+                    Sign In
+                  </button>
+                </Link>
+                <Link href='/signup'>
+                  <button className='h-12 rounded-lg bg-sky-900 font-bold px-5'>
+                    Sign Up
+                  </button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
