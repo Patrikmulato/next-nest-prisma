@@ -1,8 +1,8 @@
-import { getAllUsers } from '@frontend/lib/getAllUsers';
-import { Suspense } from 'react';
-import { LoadingSpinner } from '../components/loading-spinner/LoadingSpinner';
 import { UsersList } from './components/UsersList';
 import { Metadata } from 'next';
+import { getAllUsers } from '@frontend/lib/getAllUsers';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../api/auth/[...nextauth]/authOptions';
 
 export const metadata: Metadata = {
   title: 'Users',
@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function Users() {
-  const usersData = getAllUsers();
+  const session = await getServerSession(authOptions);
+  const usersData = getAllUsers(session);
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between p-24'>

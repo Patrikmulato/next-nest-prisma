@@ -1,5 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 
+const EXPIRE_TIME = 20 * 100;
+
 export default async function getTokens(
   userId: string,
   email: string,
@@ -13,7 +15,7 @@ export default async function getTokens(
       },
       {
         secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: '15m',
+        expiresIn: '1d',
       },
     ),
     jwtService.signAsync(
@@ -31,5 +33,6 @@ export default async function getTokens(
   return {
     accessToken,
     refreshToken,
+    expiresIn: new Date().setTime(new Date().getTime() + EXPIRE_TIME),
   };
 }

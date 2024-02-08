@@ -28,5 +28,6 @@ export class AuthEntity implements Auth {
   tokens: {
     accessToken: string;
     refreshToken: string;
+    expiresIn: number;
   };
 }

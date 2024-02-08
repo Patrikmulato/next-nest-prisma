@@ -15,8 +15,9 @@ export const POST = async (req: NextRequest) => {
     }),
   });
 
-  console.log(await res.json());
-  console.log(await Response.json(res));
-
   return Response.json(res);
+};
+
+export const GET = async (req: NextRequest) => {
+  return Response.json('Hello');
 };

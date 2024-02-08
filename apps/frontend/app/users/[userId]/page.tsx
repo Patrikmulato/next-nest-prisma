@@ -1,9 +1,10 @@
-import { LoadingSpinner } from '@frontend/app/components/loading-spinner/LoadingSpinner';
-import { getAllUsers } from '@frontend/lib/getAllUsers';
-import { getUser } from '@frontend/lib/getUser';
+'use server';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
+import { getUser } from '@frontend/lib/getUser';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@frontend/app/api/auth/[...nextauth]/authOptions';
+import { getAllUsers } from '@frontend/lib/getAllUsers';
 
 type UserPageParams = {
   params: {
@@ -14,7 +15,9 @@ type UserPageParams = {
 export async function generateMetadata({
   params: { userId },
 }: UserPageParams): Promise<Metadata> {
-  const user = await getUser(userId);
+  const session = await getServerSession(authOptions);
+
+  const user = await getUser(userId, session);
 
   if (!user) {
     return { title: 'User Not found' };
@@ -27,7 +30,9 @@ export async function generateMetadata({
 }
 
 export default async function UserPage({ params: { userId } }: UserPageParams) {
-  const user = await getUser(userId);
+  const session = await getServerSession(authOptions);
+
+  const user = await getUser(userId, session);
 
   if (!user?.id) {
     return notFound();
@@ -55,7 +60,8 @@ export default async function UserPage({ params: { userId } }: UserPageParams) {
 }
 
 export async function generateStaticParams() {
-  const users = await getAllUsers();
+  const session = await getServerSession(authOptions);
+  const users = await getAllUsers(session);
 
   return users.map((user) => ({
     userId: user.id,

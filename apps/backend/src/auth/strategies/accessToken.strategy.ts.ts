@@ -12,8 +12,8 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: { userId: string }) {
-    const user = await this.usersService.findById(payload.userId);
+  async validate(payload: { sub: string }) {
+    const user = await this.usersService.findById(payload.sub);
 
     if (!user) {
       throw new UnauthorizedException();

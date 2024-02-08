@@ -1,13 +1,6 @@
 //src/auth/auth.controller.ts
 
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
@@ -15,8 +8,9 @@ import { CreateUserDto } from '@backend/users/dto/create-user.dto';
 import { RefreshTokenGuard } from './guards/refreshToken.guard';
 import { AccessTokenGuard } from './guards/accessToken.guard';
 import { AuthEntity } from './entity/auth.entity';
+import { FastifyRequest } from 'fastify';
 
-interface CustomRequest extends Request {
+interface CustomRequest extends FastifyRequest {
   user?: { sub: string; refreshToken: string }; // Add your user property definition here
 }
 
@@ -40,16 +34,17 @@ export class AuthController {
   @UseGuards(AccessTokenGuard)
   @Get('logout')
   @ApiOkResponse({ description: 'success' })
-  async logout(@Request() req: CustomRequest): Promise<string> {
+  async logout(@Req() req: CustomRequest): Promise<string> {
     return this.authService.logout(req.user?.sub);
   }
 
   @UseGuards(RefreshTokenGuard)
   @Get('refresh')
   @ApiOkResponse({ type: AuthEntity })
-  async refreshToken(@Request() req: CustomRequest): Promise<AuthEntity> {
+  async refreshToken(@Req() req: CustomRequest): Promise<AuthEntity> {
     const userId = req.user?.sub;
     const refreshToken = req.user?.refreshToken;
+
     return new AuthEntity(
       await this.authService.refreshToken(userId, refreshToken),
     );

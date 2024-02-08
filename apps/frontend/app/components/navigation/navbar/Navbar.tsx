@@ -4,9 +4,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
 const Navbar = ({ toggle }: { toggle: () => void }) => {
-  const { data: session } = useSession();
-
-  console.log({ session });
+  const { data: session, status } = useSession();
 
   return (
     <>
